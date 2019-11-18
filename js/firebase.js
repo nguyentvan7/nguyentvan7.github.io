@@ -551,7 +551,7 @@ function upload() {
 		    ale.className = "alert alert-success fade show mt-3";
 		    // TODO need to change this to markerNum, not exhibit.
 		    var markerUrl = "https://raw.githubusercontent.com/nguyentvan7/ARtifactsMarkers/master/" + exhibit + ".png"
-		    ale.innerHTML = "Upload complete! Image target number " + exhibit + " available <a href=\"" + markerUrl + "\ target=\"_blank\">here</a>.";
+		    ale.innerHTML = "Upload complete! Image target number " + exhibit + " available <a href=\"" + markerUrl + "\" target=\"_blank\">here</a>.";
 		    var url;
 		    // Update realtime database.
 		    task.snapshot.ref.getDownloadURL().then(function(downloadURL) {
