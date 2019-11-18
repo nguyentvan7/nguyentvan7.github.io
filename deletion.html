@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <nav class="navbar fixed-top navbar-dark bg-dark">
+    <div class="col-sm-2">
+      <a class = "text-light" href = "index.html"> Add</a>
+    </div>
+    <div class="col-sm-2">
+      <a class = "text-light" href = "deletion.html"> Delete</a>
+    </div>
+    <div class="col-sm-2">
+      <a class = "text-light" href = "edit.html"> Edit</a>
+    </div>
+    <div class="col-sm-2">
+      <a class = "text-light" href = "contact.html"> Contact Us</a>
+    </div>
+    <div class = "col-sm-2">
+      <label id="currentEmail" class = "text-light"></label>
+    </div>
+    <div class = "col-sm-2">
+      <button type="button" id='logoutButton' class="btn btn-outline-light">Log Out</button>
+    </div>
+      
+  </nav>
+
+  <div class= "jumbotron jumbotron-fluid bg-info text-white text-center" >
+      <div class= "container">
+
+        <h1 class ="display-1">ARtifacts Curator</h1>
+        <p class = "lead">A place to manage your uploads</p>
+                
+      </div>
+    </div>
+
+</head>
+
+<body>
+  
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <div class = "card border-info mb-3 pt-2 pb-2 pr-2 pl-2">
+          <h1>Delete items</h1>
+
+          <form id="uploadForm">
+            <div class="form-group">
+              
+              
+            </div>
+
+            <label class="mt-2">Choose gallery</label>
+            <div class="input-group">
+              <select class="custom-select mr-2" id="gallerySelect" disabled=true onchange="setSelect(0, this.value)">
+                <option selected value="0">Loading gallery names...</option>
+              </select>
+              <button type="button" id="deleteGalleryButton" class="btn btn-secondary" onclick="displayAddModal(0)"
+                disabled=true>Delete Gallery</button>
+            </div>
+
+            <label class="mt-2">Choose room</label>
+            <div class="input-group">
+              <select class="custom-select mr-2" id="roomSelect" disabled=true onchange="setSelect(1, this.value)">
+                <option selected value="0">Choose gallery name first</option>
+              </select>
+              
+              <button type="button" id="deleteRoomButton" class="btn btn-secondary" onclick="displayAddModal(1)"
+                style="padding-left:16.6px; padding-right:16.6px" disabled=true>Delete room</button>
+            </div>
+
+            <label class="mt-2">Choose exhibit</label>
+            <div class="input-group">
+              <select class="custom-select mr-2" id="exhibitSelect" disabled=true onchange="setSelect(2, this.value)">
+                <option selected value="0">Choose room name first</option>
+              </select>
+              <button type="button" id="deleteExhibitButton" class="btn btn-secondary" onclick="displayAddModal(2)"
+                disabled=true>Delete exhibit</button>
+            </div>
+
+            <label class="mt-2">Choose item</label>
+            <div class="input-group">
+              <select class="custom-select mr-2" id="itemSelect" disabled=true onchange="setSelect(3, this.value)">
+                <option selected value="0">Choose exhibit name first</option>
+              </select>
+              <button type="button" id="deleteItemButton" class="btn btn-secondary" onclick="displayAddModal(3)"
+                style="padding-left:20px; padding-right:20px" disabled=true>Delete item</button>
+            </div>
+
+          </form>
+        </div>
+      </div> <!-- End of column -->
+
+      
+    </div> <!-- End of row -->
+
+    <!-- Add Modal -->
+    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addModalLabel"></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="form-group">
+                <label class="mr-2" id="addLabel"></label>
+                <input index="" id="addName">
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="create()">Create</button>
+          </div>
+        </div>
+      </div>
+    </div> <!-- End of modal -->
+
+    <!-- Rename Modal -->
+    <div class="modal fade" id="renameModal" tabindex="-1" role="dialog" aria-labelledby="renameModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="renameModalLabel"></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="form-group">
+                <label class="mr-2" id="renameLabel"></label>
+                <input index="" id="renameName">
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="rename()">Rename</button>
+          </div>
+        </div>
+      </div>
+    </div> <!-- End of modal -->
+  </div> <!-- End of container -->
+
+  <!-- Bootstrap js -->
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  
+  <!-- Firebase App is always required and must be first -->
+  <script src="https://www.gstatic.com/firebasejs/5.8.5/firebase-app.js"></script>
+  <script src="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.js"></script>
+  <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.css" />
+  <!-- Add additional services that you want to use -->
+  <script src="https://www.gstatic.com/firebasejs/5.8.5/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/5.8.5/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/5.8.5/firebase-storage.js"></script>
+  <script type="text/javascript" src="js/firebaseDelete.js"></script>
+</body>
+
+</html>
