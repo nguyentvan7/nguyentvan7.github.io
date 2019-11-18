@@ -384,13 +384,13 @@ function upload() {
     if (extType == "png" || extType == "jpg" || extType == "jpeg") {
 	fileTypeString = "image";
     }
-    else if (extType == "avi" || extType == "flv" || extType == "mwv" ||
-	     extType == "mov" || extType == "mp4" ) {
-	fileTypeString = "video";
-    }
-    else if (extType == "mp3") {
-	fileTypeString = "audio";
-    }
+    //else if (extType == "avi" || extType == "flv" || extType == "mwv" ||
+	     //extType == "mov" || extType == "mp4" ) {
+	//fileTypeString = "video";
+    //}
+    //else if (extType == "mp3") {
+	//fileTypeString = "audio";
+    //}
     // Reject uploads with incorrect file type.
     else {
 	ale.className = "alert alert-danger fade show mt-3";
@@ -551,7 +551,7 @@ function upload() {
 		    ale.className = "alert alert-success fade show mt-3";
 		    // TODO need to change this to markerNum, not exhibit.
 		    var markerUrl = "https://raw.githubusercontent.com/nguyentvan7/ARtifactsMarkers/master/" + exhibit + ".png"
-		    ale.innerHTML = "Upload complete! Image target number " + exhibit + " available <a href=\"" + markerUrl + "\">here</a>.";
+		    ale.innerHTML = "Upload complete! Image target number " + exhibit + " available <a href=\"" + markerUrl + "\ target=\"_blank\">here</a>.";
 		    var url;
 		    // Update realtime database.
 		    task.snapshot.ref.getDownloadURL().then(function(downloadURL) {
