@@ -558,8 +558,9 @@ function upload() {
 			console.log("File available at", downloadURL);
 			url = downloadURL;
 			updateDatabase(museum, exhibit, item, url);
-		    });
-		    setSelect(0, 0);
+			});
+			//CASSIE
+		    setSelect(0, 24);
 		    document.getElementById("uploadForm").reset();
 		    document.getElementById("uploadButton").disabled = true;
 		}
