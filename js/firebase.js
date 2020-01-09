@@ -123,7 +123,7 @@ function onload() {
 	buttons[0].disabled = false;
     });
     // CASSIE
-    setSelect(0, 12);
+    setSelect(0, 24);
 }
 
 // Dynamically populates the selects[index] forms based on the selected id.
@@ -352,7 +352,7 @@ function upload() {
     var file = document.getElementById("fileButton").files[0];
     var museum = selects[0].value;
     // CASSIE
-    museum = 12;
+    museum = 24;
     var exhibit = selects[1].value;
     var item = selects[2].value;
     var language = selects[3].options[selects[3].selectedIndex].text;
