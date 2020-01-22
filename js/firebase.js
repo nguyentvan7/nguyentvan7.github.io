@@ -8,46 +8,6 @@ var config = {
 };
 firebase.initializeApp(config);
 
-//auth stuff
-firebase.auth().onAuthStateChanged(firebaseUser => {
-    if (firebaseUser) {
-	var username = firebaseUser.email;
-	var userUid = firebaseUser.uid;
-
-	var dbPromises = [];
-
-	var select = document.getElementById("museumSelect");
-
-	userUid = firebase.auth().currentUser.uid;
-	var query = firebase
-	    .database()
-	    .ref("/museums")
-	    .orderByChild("userId")
-	    .equalTo(userUid);
-	dbPromises.push(
-	    query.once("value").then(function(snapshot) {
-		snapshot.forEach(function(childSnapshot) {
-		    var option = document.createElement("option");
-		    option.value = childSnapshot.child("/id").val();
-		    option.innerHTML = childSnapshot.child("/name").val();
-		    select.appendChild(option);
-		});
-	    })
-	);
-	Promise.all(dbPromises).then(function() {
-	    select.options[0].innerHTML = messages[0];
-	    select.disabled = false;
-	    //buttons[0].disabled = true;
-	    buttons[0].disabled = false;
-	});
-	document.getElementById("currentEmail").innerHTML = username;
-	// User is signed in.
-    } else {
-	window.location.href = "signin.html";
-	// No user is signed in.
-    }
-});
-
 var logoutBtn = document.getElementById("logoutButton");
 
 logoutBtn.addEventListener("click", e => {
@@ -67,70 +27,134 @@ var auth = firebase.auth();
 var database = firebase.database();
 
 // Used with index variable.
-var refs1 = ["museums/museum-", "exhibits/exhibit-", "items/item-"];
-var refs2 = ["/exhibitIds", "/itemIds"];
+var refs1 = ["exhibits/exhibit-", "items/item-"];
+var refs2 = ["/itemIds"];
 var selects = [
-    document.getElementById("museumSelect"),
     document.getElementById("exhibitSelect"),
     document.getElementById("itemSelect"),
     document.getElementById("languageSelect"),
     document.getElementById("ageSelect")
 ];
 var buttons = [
-    document.getElementById("createMuseumButton"),
     document.getElementById("createExhibitButton"),
     document.getElementById("createItemButton"),
     document.getElementById("createLanguageButton"),
     document.getElementById("createAgeButton")
 ];
 var messages = [
-    "Choose museum name",
     "Choose exhibit name",
     "Choose item name",
     "Choose language name",
     "Choose age group"
 ];
 var messages2 = [
-    "Choose museum name first",
     "Choose exhibit name first",
     "Choose item name first",
     "Choose language name first"
 ];
-var titles = ["museum", "exhibit", "item", "language", "age group", "user"];
+var titles = ["exhibit", "item", "language", "age group", "user"];
+var addInput = document.getElementById("addName");
 
-document.onload = onload();
+var userMuseum = -1;
 
-// Populate museumSelect when page is loaded.
-// Replace later with auth.
-function onload() {
-    var dbPromises = [];
-    var select = document.getElementById("museumSelect");
+// Find and setup museum assigned to user.
+firebase.auth().onAuthStateChanged(firebaseUser => {
+    if (firebaseUser) {
+	var username = firebaseUser.email;
+	var userUid = firebaseUser.uid;
 
-    var query = firebase.database().ref("/museums");
-    dbPromises.push(
+	var select = document.getElementById("museumSelect");
+
+	userUid = firebase.auth().currentUser.uid;
+	var query = firebase.database().ref("/museums").orderByChild("user").equalTo(userUid);
 	query.once("value").then(function(snapshot) {
 	    snapshot.forEach(function(childSnapshot) {
-		var option = document.createElement("option");
-		option.value = childSnapshot.child("/id").val();
-		option.innerHTML = childSnapshot.child("/name").val();
-		select.appendChild(option);
+		userMuseum = childSnapshot.child("/id").val();
 	    });
-	})
-    );
-    Promise.all(dbPromises).then(function() {
-	select.options[0].innerHTML = messages[0];
-	select.disabled = false;
-	buttons[0].disabled = false;
-    });
-    // CASSIE
-    setSelect(0, 24);
-}
+	}).then(function() {
+	    // Set exhibit, language and age select for the museum assigned to the user.
+	    var exhibitSelect = selects[0];
+	    var languageSelect = selects[2];
+	    var ageGroupSelect = selects[3];
+
+	    // Add "All" options.
+	    var option = document.createElement("option");
+	    // Set value to 1 to signify the language is already in the database.
+	    option.value = 1;
+	    option.text = "All";
+	    languageSelect.appendChild(option);
+	    var option = document.createElement("option");
+	    option.value = 1;
+	    option.text = "All";
+	    ageGroupSelect.appendChild(option);
+	    
+	    var query = firebase.database().ref("museums/museum-" + userMuseum);
+	    query.once("value").then(function(snapshot) {
+		// Populate exhibits.
+		var dbPromises = [];
+		var exhibitQuery = snapshot.child("/exhibitIds").ref;
+		// Pull all nested ids marked as true.
+		exhibitQuery.once("value").then(function(snapshot1) {
+		    // For each nested id marked as true, add to select.
+		    if (snapshot1.exists()) {
+			snapshot1.forEach(function(childSnapshot) {
+			    var nestedQuery = firebase.database().ref("exhibits/exhibit-" + childSnapshot.key);
+			    nestedQuery.once("value").then(function(snapshot2) {
+				var option = document.createElement("option");
+				option.value = snapshot2.child("/id").val();
+				option.innerHTML = snapshot2.child("/name").val();
+				selects[0].appendChild(option);
+			    }).then(function() {
+				selects[0].options[0].innerHTML = messages[0];
+				selects[0].disabled = false;
+				buttons[0].disabled = false;
+			    });
+			});
+		    }
+		    // No exhibits have been created.
+		    else {
+			selects[0].options[0].innerHTML = "Please create a new exhibit";
+			selects[0].disabled = true;
+			buttons[0].disabled = false;
+		    }
+		});
+		
+		// Populate languages.
+		var languageQuery = snapshot.child("/supportedLanguages");
+		languageQuery.forEach(function(childSnapshot) {
+		    var option = document.createElement("option");
+		    // Set value to 1 to signify the language is already in the database.
+		    option.value = 1;
+		    // Capitalize first letter.
+		    option.text = childSnapshot.key.charAt(0).toUpperCase() + childSnapshot.key.slice(1);
+		    languageSelect.appendChild(option);
+		});
+
+		// Same as above but for age.
+		var ageGroupQuery = snapshot.child("/supportedAgeGroups");
+		ageGroupQuery.forEach(function(childSnapshot) {
+		    var option = document.createElement("option");
+		    option.value = 1;
+		    option.text = childSnapshot.key.charAt(0).toUpperCase() + childSnapshot.key.slice(1);
+		    ageGroupSelect.appendChild(option);
+		});
+	    });
+	});
+
+	// Set username.
+	document.getElementById("currentEmail").innerHTML = username;
+	// User is signed in.
+    } else {
+	window.location.href = "signin.html";
+	// No user is signed in.
+    }
+});
 
 // Dynamically populates the selects[index] forms based on the selected id.
-// index = 0 -> from museumSelect, populate roomSelect
-// index = 1 -> from roomSelect, populate exhibitSelect
-// index = 2 -> from exhibitSelect, populate itemSelect
-// index = 3 -> from itemSelect, used for disabling/enabling buttons
+// index = 0 -> from exhibitSelect, populate itemSelect
+// index = 1 -> from itemSelect, populate languageSelect
+// index = 2 -> from languageSelect, populate ageSelect
+// index = 3 -> from ageSelect, used for enabling/disabling upload
 function setSelect(index, id) {
     // Clearing any options already in select, and any nested select.
     // Do not clear the helper text.
@@ -141,13 +165,6 @@ function setSelect(index, id) {
     // the museum select is changed.
     // Should not remove language or ageGroup select unless the museum has changed.
     for (i = index + 1; i < selects.length; i++) {
-	// Only remove select options for exhibit/item, unless a museum was changed.
-	// This will be simpler once auth is properly set up.
-	if (index == 0 || i < selects.length - 2) {
-	    for (j = selects[i].options.length - 1; j >= 1; j--) {
-		selects[i].remove(j);
-	    }
-	}
 	// Disable the buttons of the following selects.
 	selects[i].disabled = true;
 	buttons[i].disabled = true;
@@ -167,7 +184,7 @@ function setSelect(index, id) {
     }
 
     var dbPromises = [];
-    // Only populate the following select if the current one changed is not the item select.
+    // Only populate the following select if the current one changed is not the age select.
     if (index < selects.length - 1) {
 	// Display loading message while loading.
 	selects[index + 1].options[0].innerHTML = "Loading names...";
@@ -198,6 +215,11 @@ function setSelect(index, id) {
 		selects[index + 1].disabled = false;
 		buttons[index + 1].disabled = false;
 		selects[index + 1].options[0].innerHTML = messages[index + 1];
+		if (index == 0 && id == -1) {
+		    // Change text of item select to tell user to add an item.
+		    selects[1].options[0].innerHTML = "Please create a new item";
+		    selects[1].disabled = true;
+		}
 		selects[index + 1].selectedIndex = 0;
 		document.getElementById("uploadButton").disabled = true;
 	    } else {
@@ -218,57 +240,16 @@ function setSelect(index, id) {
 	}
     }
 
-    // If museumSelect is updated, we need to also load supportedLanguages and supportedAgeGroups.
-    if (index == 0) {
-	var museum = selects[0].options[selects[0].selectedIndex].value;
-	var languageSelect = selects[3];
-	var ageGroupSelect = selects[4];
-
-	// Add "All" options.
-	var option = document.createElement("option");
-	// Set value to 1 to signify the language is already in the database.
-	option.value = 1;
-	option.text = "All";
-	languageSelect.appendChild(option);
-	var option = document.createElement("option");
-	option.value = 1;
-	option.text = "All";
-	ageGroupSelect.appendChild(option);
-	
-	// If not creating a new museum.
-	if (museum != -1) {
-	    var query = firebase.database().ref("museums/museum-" + museum);
-	    dbPromises.push(query.once("value").then(function(snapshot) {
-		var languageQuery = snapshot.child("/supportedLanguages");
-		languageQuery.forEach(function(childSnapshot) {
-		    var option = document.createElement("option");
-		    // Set value to 1 to signify the language is already in the database.
-		    option.value = 1;
-		    // Capitalize first letter.
-		    option.text = childSnapshot.key.charAt(0).toUpperCase() + childSnapshot.key.slice(1);
-		    languageSelect.appendChild(option);
-		});
-		var ageGroupQuery = snapshot.child("/supportedAgeGroups");
-		ageGroupQuery.forEach(function(childSnapshot) {
-		    var option = document.createElement("option");
-		    option.value = 1;
-		    option.text = childSnapshot.key.charAt(0).toUpperCase() + childSnapshot.key.slice(1);
-		    ageGroupSelect.appendChild(option);
-		});
-	    }));
-	}
-    }
-
     // If exhibitSelect is updated, we need to update the markerNum displayed.
-    if (index == 1) {
-	var markerNum = selects[1].options[selects[1].selectedIndex].value;
+    if (index == 0) {
+	var markerNum = selects[0].options[selects[0].selectedIndex].value;
 	// If markerNum is unspecified aka -1.
 	if (markerNum == -1) {
-	    document.getElementById("displayMarkerLabel").innerHTML = "The image target for this exhibit is unspecified.";
+	    document.getElementById("displayMarkerLabel").innerHTML = "The image target for this exhibit is unspecified. Once you upload, the image target will be generated.";
 	    document.getElementById("displayMarkerButton").disabled = true;
 	    document.getElementById("displayMarkerLabel").setAttribute("markerNum", markerNum);
 	}
-	// If marker num is specified aka not -1.
+	// If marker num is specified aka NOT -1.
 	else {
 	    document.getElementById("displayMarkerLabel").innerHTML = "The image target for this exhibit is number " + markerNum  + ".";
 	    document.getElementById("displayMarkerButton").disabled = false;
@@ -350,13 +331,10 @@ function rename() {
 // Upload the selected file and update the realtime database with new link.
 function upload() {
     var file = document.getElementById("fileButton").files[0];
-    var museum = selects[0].value;
-    // CASSIE
-    museum = 24;
-    var exhibit = selects[1].value;
-    var item = selects[2].value;
-    var language = selects[3].options[selects[3].selectedIndex].text;
-    var ageGroup = selects[4].options[selects[4].selectedIndex].text;
+    var exhibit = selects[0].value;
+    var item = selects[1].value;
+    var language = selects[2].options[selects[2].selectedIndex].text;
+    var ageGroup = selects[3].options[selects[3].selectedIndex].text;
     var markerNum = 0;
 
     // Progress bar
@@ -384,30 +362,31 @@ function upload() {
     if (extType == "png" || extType == "jpg" || extType == "jpeg") {
 	fileTypeString = "image";
     }
-    //else if (extType == "avi" || extType == "flv" || extType == "mwv" ||
-	     //extType == "mov" || extType == "mp4" ) {
-	//fileTypeString = "video";
-    //}
-    //else if (extType == "mp3") {
-	//fileTypeString = "audio";
-    //}
+    else if (extType == "avi" || extType == "flv" || extType == "mwv" ||
+	     extType == "mov" || extType == "mp4" ) {
+	fileTypeString = "video";
+    }
+    else if (extType == "mp3") {
+	fileTypeString = "audio";
+    }
     // Reject uploads with incorrect file type.
     else {
-	ale.className = "alert alert-danger fade show mt-3";
-	ale.innerHTML = "Please ensure all fields are valid";
-	return;
-    }
-
-    // Check that all fields are valid.
-    if ( file == null || museum == messages[0] || museum == messages2[0] ||
-	 exhibit == messages[1] || exhibit == messages2[1] ||
-	 item == messages[2] || item == messages2[2] ||
-	 language == messages[3] || language == messages2[3] ||
-	 ageGroup == messages[4]) {
 	ale.className = "alert alert-danger fade show mt-3";
 	ale.innerHTML = "Please only submit text files, videos, or images";
 	return;
     }
+
+    // Check that all fields are valid.
+    if ( file == null || exhibit == messages[1] || exhibit == messages2[1] ||
+	 item == messages[2] || item == messages2[2] ||
+	 language == messages[3] || language == messages2[3] ||
+	 ageGroup == messages[4]) {
+	ale.className = "alert alert-danger fade show mt-3";
+	ale.innerHTML = "Please ensure all fields are valid";
+	return;
+    }
+    
+    // Change alert to be a success.
     ale.className = "alert alert-success collapse mt-3";
 
     // Default values.
@@ -427,7 +406,7 @@ function upload() {
 	dbPromises.push(
 	    query.once("value").then(function(snapshot) {
 		item = snapshot.val();
-		selects[2].options[selects[2].selectedIndex].value = item;
+		selects[1].options[selects[1].selectedIndex].value = item;
 		updates["ids/itemNum"] = item + 1;
 		console.log("t01");
 	    })
@@ -447,64 +426,34 @@ function upload() {
 	);
     }
 
+    var markerQuery = firebase.database().ref("museums/museum-" + userMuseum + "/markerNum");
+    dbPromises.push(markerQuery.once("value").then(function(snapshot) {
+	markerNum = snapshot.val();
+	console.log("HIT1.1");
+    }));
     if (exhibit == -1) {
 	var query = firebase.database().ref("ids/exhibitNum");
 	dbPromises.push(
 	    query.once("value").then(function(snapshot) {
 		exhibit = snapshot.val();
-		selects[1].options[selects[1].selectedIndex].value = exhibit;
+		selects[0].options[selects[0].selectedIndex].value = exhibit;
 		updates["ids/exhibitNum"] = exhibit + 1;
-
 		console.log("t1");
-		var markerQuery = firebase.database().ref("museums/museum-" + museum + "/markerNum");
-		// If museum does not exist already, markerNum is 1.
-		if (museum == -1) {
-		    markerNum = 1;
-		    updates["exhibits/exhibit-" + exhibit + "/markerNum"] = markerNum;
-		    markerNum = markerNum + 1;
-		    dbPromises.push(Promise.resolve());
-		}
-		// If museum exists already, query markerNum and update exhibit with markerNum.
-		else {
-		    dbPromises.push(
-			markerQuery.once("value").then(function(snapshot) {
-			    markerNum = snapshot.val();
-			    updates["exhibits/exhibit-" + exhibit + "/markerNum"] = markerNum;
-			    markerNum = markerNum + 1;
-			    console.log("HIT1");
-			    console.log(markerNum);
-			})
-		    );
-		}
+		markerNum = markerNum + 1;
 	    })
 	);
-
-    } else {
-	dbPromises.push(Promise.resolve());
     }
-
-    if (museum == -1) {
-	var query = firebase.database().ref("ids/museumNum");
-	dbPromises.push(
-	    query.once("value").then(function(snapshot) {
-		museum = snapshot.val();
-		selects[0].options[selects[0].selectedIndex].value = museum;
-		updates["ids/museumNum"] = museum + 1;
-		console.log(markerNum);
-	    })
-	);
-    } else {
+    else {
 	dbPromises.push(Promise.resolve());
     }
 
     // Wait until all promises are finished before pushing to database.
     Promise.all(dbPromises).then(function() {
 	var userUid = firebase.auth().currentUser.uid;
-	console.log(x + " " + y + " " + z);
 
 	// Update database relations.
 	updates["items/item-" + item + "/name"] =
-	    selects[2].options[selects[2].selectedIndex].text;
+	    selects[1].options[selects[1].selectedIndex].text;
 	updates["items/item-" + item + "/id"] = parseInt(item.toString());
 	updates['items/item-' + item + '/user'] = userUid;
 	updates['items/item-' + item + '/type'] = fileTypeString;
@@ -515,16 +464,13 @@ function upload() {
 	updates["items/item-" + item + "/language"] = language.toLowerCase();
 	updates["items/item-" + item + "/ageGroup"] = ageGroup.toLowerCase();
 	updates["exhibits/exhibit-" + exhibit + "/name"] =
-	    selects[1].options[selects[1].selectedIndex].text;
+	    selects[0].options[selects[0].selectedIndex].text;
 	updates["exhibits/exhibit-" + exhibit + "/itemIds/" + item] = true;
 	updates["exhibits/exhibit-" + exhibit + "/id"] = parseInt(exhibit);
 	updates["exhibits/exhibit-" + exhibit + "/user"] = userUid;
-	updates["museums/museum-" + museum + "/name"] =
-	    selects[0].options[selects[0].selectedIndex].text;
-	updates["museums/museum-" + museum + "/exhibitIds/" + exhibit] = true;
-	updates["museums/museum-" + museum + "/id"] = parseInt(museum);
-	updates["museums/museum-" + museum + "/user"] = userUid;
-	updates["museums/museum-" + museum + "/markerNum"] = markerNum;
+	updates["exhibits/exhibit-" + exhibit + "/markerNum"] = markerNum;
+	updates["museums/museum-" + userMuseum + "/exhibitIds/" + exhibit] = true;
+	updates["museums/museum-" + userMuseum + "/markerNum"] = markerNum;
 	// Don't add the "All" group.
 	if(language.toLowerCase() != "all") {
 	    updates["museums/museum-" + museum + "/supportedLanguages/" + language.toLowerCase()] = true;
@@ -532,10 +478,9 @@ function upload() {
 	if(ageGroup.toLowerCase() != "all") {
 	    updates["museums/museum-" + museum + "/supportedAgeGroups/" + ageGroup.toLowerCase()] = true;
 	}
-	firebase.database().ref().update(updates);
 
 	// Store file in storage.
-	var ref = "/museum-" + museum + "/exhibit-" + exhibit + "/item-" + item;
+	var ref = "/museum-" + userMuseum + "/exhibit-" + exhibit + "/item-" + item;
 	var task = firebase.storage().ref(ref).put(file);
 	task.on("state_changed",
 		function progress(snapshot) {
@@ -551,17 +496,19 @@ function upload() {
 		    ale.className = "alert alert-success fade show mt-3";
 		    // TODO need to change this to markerNum, not exhibit.
 		    var markerUrl = "https://raw.githubusercontent.com/nguyentvan7/ARtifactsMarkers/master/" + exhibit + ".png"
-		    ale.innerHTML = "Upload complete! Image target number " + exhibit + " available <a href=\"" + markerUrl + "\" target=\"_blank\">here</a>.";
+		    ale.innerHTML = "Upload complete! Image target number " + exhibit + " available <a href=\"" + markerUrl + "\">here</a>";
 		    var url;
 		    // Update realtime database.
 		    task.snapshot.ref.getDownloadURL().then(function(downloadURL) {
 			console.log("File available at", downloadURL);
 			url = downloadURL;
-			updateDatabase(museum, exhibit, item, url);
-			});
-			//CASSIE
-		    setSelect(0, 24);
+			updates["/items/item-" + item + "/url"] = url;
+			// Push all updates.
+			firebase.database().ref().update(updates);
+		    });
+		    //VAN: TODO: URGENT: NEED TO CHECK BELOW WORKS
 		    document.getElementById("uploadForm").reset();
+		    setSelect(0, 0);
 		    document.getElementById("uploadButton").disabled = true;
 		}
 	       );
@@ -575,19 +522,19 @@ function displayMarker() {
     window.open(markerUrl, "_blank");
 }
 
-// Update realtime database at all levels.
-function updateDatabase(museum, exhibit, item, url) {
-    // Update realtime database with new url.
-    var updates = {};
-    //updates['/museums/museum-' + museum] = true;
-    //updates['/rooms/room-' + room + '/exhibitIds/' + exhibit] = true;
-    updates["/exhibits/exhibit-" + exhibit + "/itemIds/" + item] = true;
-    updates["/items/item-" + item + "/url"] = url;
-    firebase
-	.database()
-	.ref()
-	.update(updates);
-}
+// Add handling for enter key in modal.
+(function() {
+    addInput.addEventListener('keyup', function(event) {
+	if (event.keyCode == 13) {
+	    event.preventDefault();
+	    create();
+	}
+    });
+}());
+
+//====================================//
+//===============LEGACY===============//
+//====================================//
 
 // Begins process of printing all urls belonging to a specified museum.
 function download(id) {
