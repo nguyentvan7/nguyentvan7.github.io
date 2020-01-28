@@ -4,7 +4,9 @@ var config = {
     authDomain: "artifacts-8362e.firebaseapp.com",
     databaseURL: "https://artifacts-8362e.firebaseio.com",
     projectId: "artifacts-8362e",
-    storageBucket: "artifacts-8362e.appspot.com"
+    storageBucket: "artifacts-8362e.appspot.com",
+    messagingSenderId: "595747537113",
+    appId: "1:595747537113:web:31f48ebe7e475b9bd2fec8",
 };
 firebase.initializeApp(config);
 
@@ -66,7 +68,7 @@ firebase.auth().onAuthStateChanged(firebaseUser => {
 	var select = document.getElementById("museumSelect");
 
 	userUid = firebase.auth().currentUser.uid;
-	var query = firebase.database().ref("/museums").orderByChild("user").equalTo(userUid);
+	var query = firebase.database().ref("/museums");
 	query.once("value").then(function(snapshot) {
 	    snapshot.forEach(function(childSnapshot) {
 		userMuseum = childSnapshot.child("/id").val();
