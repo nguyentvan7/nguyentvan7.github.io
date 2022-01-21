@@ -1,4 +1,4 @@
-function grab()d {
+function grab() {
     console.log("Clicked");
     try {
         // Implemented as per https://stackoverflow.com/a/27872244/316244
