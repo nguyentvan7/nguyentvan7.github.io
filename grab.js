@@ -35,6 +35,12 @@ function grab() {
         }
         while (pageToken != "");
 
+        const a = document.createElement("a");
+        const file = new Blob([JSON.stringify(outputData)], { type: "text/plain" });
+        a.href = URL.createObjectURL(file);
+        a.download = "videos.json";
+        a.click();
+
     } catch (err) {
         console.log(err);
     }
