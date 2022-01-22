@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<!-- Required meta tags -->
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+</head>
+
+<body>
+	<button onclick=randomVideo()>Random Video</button>
+    <iframe id="video" width="560" height="315" src="https://www.youtube.com/embed/Rf_-kywTtns" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</body>
+
+<script>
+    var videos = null;
+
+    function randomVideo() {
+        if (videos !== null) {
+            playVideo();
+        }
+        else {
+            loadJSON();
+        }
+    }
+
+    function loadJSON() {
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    onDataLoaded(JSON.parse(xhr.responseText));
+                }
+                else {
+                    console.log(xhr);
+                }
+            }
+        }
+    }
+
+    function onDataLoaded(data) {
+        videos = data.table;
+        playVideo();
+    }
+
+    function playVideo() {
+        var videoID = videos[Math.floor(Math.random()*videos.length)];
+        var videoPlayer = document.getElementById("video");
+        videoPlayer.src = "https://www.youtube.com/embed/" + videoID;
+    }
+
+</script>
+
+</html>
