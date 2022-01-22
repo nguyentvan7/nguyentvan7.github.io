@@ -89,7 +89,8 @@
 
     function loadVideo() {
         var videoID = videos[Math.floor(Math.random() * videos.length)].videoId;
-        player.loadVideoById(videoID, 0);
+        player.loadVideoById(videoID);
+        player.seekTo(0);
     }
 
 </script>
