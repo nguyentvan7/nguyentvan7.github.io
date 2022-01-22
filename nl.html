@@ -2,25 +2,34 @@
 <html lang="en">
 
 <head>
-	<!-- Required meta tags -->
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 </head>
 
 <body>
-	<button onclick=randomVideo()>Random Video</button>
-    <iframe id="video" width="560" height="315" src="https://www.youtube.com/embed/Rf_-kywTtns" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    <div class="container" id="container">
+        <iframe id="videoPlayer" src="" title="YouTube video player" frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+    </div>
+    <br>
+    <button id="randButton" disabled=true onclick=randomVideo()>Loading...</button>
 </body>
 
 <script>
     var videos = null;
+    var container = document.getElementById("container");
+    var videoPlayer = document.getElementById("videoPlayer");
+    var randButton = document.getElementById("randButton");
+
+    window.onload = function () {
+        loadJSON();
+    }
 
     function randomVideo() {
         if (videos !== null) {
-            playVideo();
-        }
-        else {
-            loadJSON();
+            loadVideo();
         }
     }
 
@@ -35,20 +44,54 @@
                     console.log(xhr);
                 }
             }
-        }
+        };
+        xhr.open("GET", "https://nguyentvan7.github.io/videos.json");
+        xhr.send();
     }
 
     function onDataLoaded(data) {
+        randButton.disabled = false;
+        randButton.innerHTML = "Load random video";
         videos = data.table;
-        playVideo();
+        loadVideo();
     }
 
-    function playVideo() {
-        var videoID = videos[Math.floor(Math.random()*videos.length)];
-        var videoPlayer = document.getElementById("video");
+    function loadVideo() {
+        var videoID = videos[Math.floor(Math.random() * videos.length)].videoId;
         videoPlayer.src = "https://www.youtube.com/embed/" + videoID;
     }
 
 </script>
+
+<style>
+    body {
+        background-color: black;
+    }
+
+    .container {
+        display:table-cell; /* (specs: omitted table parts, the browser will insert mandatory elements in the dom tree) */
+        position:relative;
+        width:90vw; /* any value */
+        height:1vh; /* will expand by the :before element */
+        overflow:hidden; /* hide eventual black bars */
+        vertical-align:middle;
+        text-align:center;
+    }
+    .container:before {
+        display:block;
+        padding-top:56%; /* keeps the 16/9 ratio for the AP */
+        height:0;
+        content:"\a0";
+    }
+    .container iframe {
+        position:absolute; /* to be ratio consistent */
+        top:-.5%;
+        left:-.5%; /* overflow eventual black bars */
+        border:0;
+        width:101%; /* grow some to avoid thinner black bars */
+        height:101%;
+        overflow:hidden; /* for html5 browsers the html attribute is depreciated */
+    }
+</style>
 
 </html>
