@@ -11,23 +11,52 @@
 
 <body>
     <div class="container" id="container">
-        <iframe id="videoPlayer" src="" title="YouTube video player" frameborder="0"
+        <!-- <iframe id="videoPlayer" src="" title="YouTube video player" frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen></iframe>
+            allowfullscreen></iframe> -->
+        <div id="videoPlayer"></div>
     </div>
     <br>
     <button id="randButton" disabled=true onclick=randomVideo()>Loading...</button>
+    <label>Enable autoplay: </label>
+    <input id="autoplayCheck" type="checkbox">
 </body>
 
 <script>
+    var player;
     var videos = null;
     var container = document.getElementById("container");
-    var videoPlayer = document.getElementById("videoPlayer");
     var randButton = document.getElementById("randButton");
+    var autoplayCheck = document.getElementById("autoplayCheck");
+    var shouldAutoplay = false;
 
-    window.onload = function () {
-        loadJSON();
+    // YouTube video player stuff
+    var tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName("script")[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player("videoPlayer", {
+            playerVars: {
+                "autoplay": 1,
+            },
+            events: {
+                "onReady": loadJSON,
+                "onStateChange": onPlayerStateChange
+            }
+        })
     }
+
+    function onPlayerStateChange(event) {
+        if (event.data == YT.PlayerState.ENDED && shouldAutoplay) {
+            loadVideo();
+        }
+    }
+
+    autoplayCheck.addEventListener("change", function() {
+        shouldAutoplay = this.checked;
+    });
 
     function randomVideo() {
         if (videos !== null) {
@@ -53,14 +82,14 @@
 
     function onDataLoaded(data) {
         randButton.disabled = false;
-        randButton.innerHTML = "Load random video";
+        randButton.innerHTML = "Play random video";
         videos = data;
         loadVideo();
     }
 
     function loadVideo() {
         var videoID = videos[Math.floor(Math.random() * videos.length)].videoId;
-        videoPlayer.src = "https://www.youtube.com/embed/" + videoID;
+        player.loadVideoById(videoID, 0);
     }
 
 </script>
@@ -68,6 +97,10 @@
 <style>
     body {
         background-color: black;
+    }
+
+    label {
+        color: white;
     }
 
     .container {
