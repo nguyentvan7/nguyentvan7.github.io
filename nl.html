@@ -11,10 +11,7 @@
 
 <body>
     <div class="container" id="container">
-        <!-- <iframe id="videoPlayer" src="" title="YouTube video player" frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen></iframe> -->
-        <div id="videoPlayer"></div>
+        <div id="videoPlayer"/>
     </div>
     <br>
     <button id="randButton" disabled=true onclick=randomVideo()>Loading...</button>
@@ -25,7 +22,6 @@
 <script>
     var player;
     var videos = null;
-    var container = document.getElementById("container");
     var randButton = document.getElementById("randButton");
     var autoplayCheck = document.getElementById("autoplayCheck");
     var shouldAutoplay = false;
@@ -54,7 +50,7 @@
         }
     }
 
-    autoplayCheck.addEventListener("change", function() {
+    autoplayCheck.addEventListener("change", function () {
         shouldAutoplay = this.checked;
     });
 
@@ -104,28 +100,12 @@
         color: white;
     }
 
-    .container {
-        display:table-cell; /* (specs: omitted table parts, the browser will insert mandatory elements in the dom tree) */
-        position:relative;
-        width:90vw; /* any value */
-        height:1vh; /* will expand by the :before element */
-        overflow:hidden; /* hide eventual black bars */
-        vertical-align:middle;
-        text-align:center;
-    }
-    .container:before {
-        display:block;
-        padding-top:56%; /* keeps the 16/9 ratio for the AP */
-        height:0;
-        content:"\a0";
-    }
-    .container iframe {
-        position:absolute; /* to be ratio consistent */
+    iframe {
+        height: 100vh;
+        width: 177vh;
         top:-.5%;
         left:-.5%; /* overflow eventual black bars */
         border:0;
-        width:101%; /* grow some to avoid thinner black bars */
-        height:101%;
         overflow:hidden; /* for html5 browsers the html attribute is depreciated */
     }
 </style>
