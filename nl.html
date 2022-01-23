@@ -10,27 +10,23 @@
 </head>
 
 <body>
-    <div class="container" id="container">
-        <div id="videoPlayer"/>
+    <div class="videoDiv">
+        <div id="videoPlayer"></div>
     </div>
-    <br>
-    <button id="randButton" disabled=true onclick=randomVideo()>Loading...</button>
-    <label>Enable autoplay: </label>
-    <input id="autoplayCheck" type="checkbox">
+    <div class="inputDiv">
+        <button id="randButton" disabled=true onclick=randomVideo()>Loading...</button>
+        <label>Enable autoplay: </label>
+        <input id="autoplayCheck" type="checkbox">
+    </div>
 </body>
 
+<script src="https://www.youtube.com/iframe_api"></script>
 <script>
     var player;
     var videos = null;
     var randButton = document.getElementById("randButton");
     var autoplayCheck = document.getElementById("autoplayCheck");
     var shouldAutoplay = false;
-
-    // YouTube video player stuff
-    var tag = document.createElement("script");
-    tag.src = "https://www.youtube.com/iframe_api";
-    var firstScriptTag = document.getElementsByTagName("script")[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
     function onYouTubeIframeAPIReady() {
         player = new YT.Player("videoPlayer", {
@@ -101,13 +97,24 @@
     }
 
     iframe {
-        height: 100vh;
-        width: 177vh;
+        height: 50.4vw;
+        width: 90vw;
         top:-.5%;
-        left:-.5%; /* overflow eventual black bars */
+        left:-.5%;
         border:0;
-        overflow:hidden; /* for html5 browsers the html attribute is depreciated */
+        overflow:hidden;
     }
+
+    .videoDiv {
+        width: 90vw;
+        float: left;
+    }
+
+    .inputDiv {
+        width: 8vw;
+        float: left;
+    }
+
 </style>
 
 </html>
