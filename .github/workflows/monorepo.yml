@@ -35,16 +35,6 @@ jobs:
         ref: ${{ github.event.inputs.ref }}
         path: genshin-optimizer
         ssh-key: ${{ secrets.ssh_key_optimizer }}
-    - name: Disable files
-      run: |
-        echo > genshin-optimizer/libs/dm/scripts/loadDM.ts
-    - name: Checkout GenshinData
-      uses: actions/checkout@v3
-      with:
-        repository: eeeqeee/GenshinData
-        ref: trimmed
-        path: genshin-optimizer/libs/dm/GenshinData
-        ssh-key: ${{ secrets.ssh_key_genshindata }}
     - uses: actions/setup-node@v3
       with:
         node-version: 18
